@@ -33,3 +33,4 @@ pub fn get_interfaces() -> Vec<String> {
     // Retourne le vecteur de noms d'interface.
     names
 }
+

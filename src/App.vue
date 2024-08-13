@@ -75,6 +75,7 @@
 <script>
 import { invoke } from '@tauri-apps/api/tauri';
 import { open } from '@tauri-apps/api/dialog';
+import { exit } from '@tauri-apps/api/process';
 
 export default {
   data() {
@@ -126,8 +127,8 @@ export default {
     stop() {
       // Logic for stopping the packet sending process
     },
-    close() {
-      // Logic for closing the application or interface
+    async close() {
+      await exit(1);
     }
   },
 };
