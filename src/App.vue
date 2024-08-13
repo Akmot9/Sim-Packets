@@ -51,12 +51,16 @@
 </template>
 
 <script>
+import { invoke } from '@tauri-apps/api/tauri';
+import { message } from '@tauri-apps/api/dialog';
+import { open } from '@tauri-apps/api/dialog';
+
 export default {
   data() {
     return {
       selectedAdapter: '',
-      adapters: ['Intel(R) Ethernet Connection I217-LM', 'Other Adapter 1', 'Other Adapter 2'],
-      packetFile: 'C:\\Users\\Desktop\\Packets2.cap',
+      adapters: [],
+      packetFile: [],
       playSpeed: 1,
       loopSending: false,
       loopCount: 1,
@@ -68,9 +72,31 @@ export default {
       progress: 0,
     };
   },
+  async mounted() {
+    invoke('get_interfaces').then((interfaces) => {
+      this.adapters = interfaces;
+      if (interfaces.length > 0) {
+        this.selectedNetInterface = interfaces[interfaces.length - 1]; // Set the last item as default
+      }
+    }).catch(error => {
+      console.error("Failed to load interfaces:", error);
+    });
+  },
   methods: {
-    addFiles() {
-      // Logic for adding files
+    async addFiles() {
+      const dir = await open({
+        multiple: true,
+        filters: [{
+          name: 'Capture File',
+          extensions: ['pcap', 'pcapng']
+          
+        }]
+      });
+      console.log("App Data Directory: ", dir);
+      if (dir) {
+        this.packetFile.push(dir); // Add the file path to the array
+        console.log("App Data Directory list: ", this.packetFile);
+      }
     },
     addFolder() {
       // Logic for adding folder
