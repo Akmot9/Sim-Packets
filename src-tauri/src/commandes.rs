@@ -1,5 +1,7 @@
 use pnet::datalink;
-use tauri::command;
+use tauri::{command,State};
+use crate::tauri_state::SimPcapState;
+use std::sync::Mutex;
 
 #[command]
 pub fn get_interfaces() -> Vec<String> {
@@ -34,3 +36,15 @@ pub fn get_interfaces() -> Vec<String> {
     names
 }
 
+#[command]
+pub fn get_status(state_mutex: State<'_, Mutex<SimPcapState>>) -> Result<bool, String> {
+    let state = state_mutex.lock().map_err(|_| "Failed to acquire lock".to_string())?;
+    Ok(state.sim_status)
+}
+
+#[tauri::command]
+pub fn update_status(state_mutex: State<'_, Mutex<SimPcapState>>, sim_status: bool) -> Result<(), String> {
+    let mut state = state_mutex.lock().map_err(|_| "Failed to acquire lock".to_string())?;
+    state.sim_status = sim_status;
+    Ok(())
+}

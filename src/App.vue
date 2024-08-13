@@ -66,7 +66,6 @@
     <div class="control-buttons">
       <button class="btn btn-primary" @click="play">Play</button>
       <button class="btn btn-warning" @click="pause">Pause</button>
-      <button class="btn btn-danger" @click="stop">Stop</button>
       <button class="btn btn-secondary" @click="close">Close</button>
     </div>
   </div>
@@ -119,13 +118,10 @@ export default {
       this.packetFile = [];
     },
     play() {
-      // Logic for starting the packet sending process
+      invoke('get_status')
     },
     pause() {
       // Logic for pausing the packet sending process
-    },
-    stop() {
-      // Logic for stopping the packet sending process
     },
     async close() {
       await exit(1);
