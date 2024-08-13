@@ -1,5 +1,9 @@
 <template>
   <div class="app-container">
+    <div class="header">
+      <h1>Packet Sender</h1>
+    </div>
+
     <div class="select-section">
       <div class="select-group">
         <label for="adapter">Adapter:</label>
@@ -9,17 +13,32 @@
       </div>
       <div class="file-group">
         <label for="packetFile">Packet File:</label>
-        <input type="text" v-model="packetFile" id="packetFile" readonly />
-        <button @click="addFiles">Add File(s)</button>
-        <button @click="addFolder">Add File Folder</button>
-        <button @click="clearFiles">Clear</button>
+        <button class="btn" @click="addFiles">Add File(s)</button>
+        <button class="btn btn-clear" @click="clearFiles">Clear</button>
+      </div>
+      <div class="packet-file-table" v-if="packetFile.length">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>File Path</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(file, index) in packetFile" :key="index">
+              <td>{{ index + 1 }}</td>
+              <td>{{ file }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
-    
+
     <div class="options-section">
       <div class="speed-control">
         <label>Play Speed:</label>
         <input type="range" v-model="playSpeed" min="0.125" max="4" step="0.125" />
+        <span>{{ playSpeed }}x</span>
       </div>
       <div class="loop-control">
         <input type="checkbox" v-model="loopSending" id="loopSending" />
@@ -27,6 +46,7 @@
         <input type="number" v-model="loopCount" :disabled="!loopSending" min="1" />
         <label for="delayBetweenLoops">Delay Between Loops:</label>
         <input type="number" v-model="delayBetweenLoops" min="0" />
+        <span>{{ delayBetweenLoops }} ms</span>
         <div>
           <input type="checkbox" v-model="ignoreFileError" id="ignoreFileError" />
           <label for="ignoreFileError">Ignore any file error</label>
@@ -35,24 +55,25 @@
     </div>
 
     <div class="sending-info-section">
-      <p>Current File: {{ currentFile }}</p>
-      <p>Packets Sent: {{ packetsSent }}</p>
-      <p>Status: {{ status }}</p>
-      <progress-bar :progress="progress"></progress-bar>
+      <p>Current File: <strong>{{ currentFile }}</strong></p>
+      <p>Packets Sent: <strong>{{ packetsSent }}</strong></p>
+      <p>Status: <strong>{{ status }}</strong></p>
+      <div class="progress-bar">
+        <div class="progress-bar-inner" :style="{ width: progress + '%' }"></div>
+      </div>
     </div>
 
     <div class="control-buttons">
-      <button @click="play">Play</button>
-      <button @click="pause">Pause</button>
-      <button @click="stop">Stop</button>
-      <button @click="close">Close</button>
+      <button class="btn btn-primary" @click="play">Play</button>
+      <button class="btn btn-warning" @click="pause">Pause</button>
+      <button class="btn btn-danger" @click="stop">Stop</button>
+      <button class="btn btn-secondary" @click="close">Close</button>
     </div>
   </div>
 </template>
 
 <script>
 import { invoke } from '@tauri-apps/api/tauri';
-import { message } from '@tauri-apps/api/dialog';
 import { open } from '@tauri-apps/api/dialog';
 
 export default {
@@ -73,36 +94,28 @@ export default {
     };
   },
   async mounted() {
-    invoke('get_interfaces').then((interfaces) => {
+    try {
+      const interfaces = await invoke('get_interfaces');
       this.adapters = interfaces;
       if (interfaces.length > 0) {
-        this.selectedNetInterface = interfaces[interfaces.length - 1]; // Set the last item as default
+        this.selectedAdapter = interfaces[interfaces.length - 1];
       }
-    }).catch(error => {
-      console.error("Failed to load interfaces:", error);
-    });
+    } catch (error) {
+      console.error('Failed to load interfaces:', error);
+    }
   },
   methods: {
     async addFiles() {
-      const dir = await open({
+      const files = await open({
         multiple: true,
-        filters: [{
-          name: 'Capture File',
-          extensions: ['pcap', 'pcapng']
-          
-        }]
+        filters: [{ name: 'Capture File', extensions: ['pcap', 'pcapng', 'cap'] }],
       });
-      console.log("App Data Directory: ", dir);
-      if (dir) {
-        this.packetFile.push(dir); // Add the file path to the array
-        console.log("App Data Directory list: ", this.packetFile);
+      if (files) {
+        this.packetFile.push(...files);
       }
     },
-    addFolder() {
-      // Logic for adding folder
-    },
     clearFiles() {
-      this.packetFile = '';
+      this.packetFile = [];
     },
     play() {
       // Logic for starting the packet sending process
@@ -122,8 +135,23 @@ export default {
 
 <style>
 .app-container {
+  max-width: 800px;
+  margin: 0 auto;
   padding: 20px;
-  font-family: Arial, sans-serif;
+  font-family: 'Arial', sans-serif;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 24px;
+  color: #333;
 }
 
 .select-section, .options-section, .sending-info-section, .control-buttons {
@@ -139,30 +167,91 @@ export default {
 label {
   margin-right: 10px;
   font-weight: bold;
+  color: #555;
 }
 
-input[type="text"], input[type="number"], select {
+input[type="range"], input[type="number"], select {
   margin-right: 10px;
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
 }
 
-button {
-  margin-right: 10px;
+button.btn {
+  padding: 10px 20px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
 }
 
-progress-bar {
-  width: 100%;
-  height: 20px;
-  background-color: #f3f3f3;
-  border-radius: 5px;
-  overflow: hidden;
+button.btn-primary {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+button.btn-warning {
+  background-color: #ff9800;
+  color: #fff;
+}
+
+button.btn-danger {
+  background-color: #f44336;
+  color: #fff;
+}
+
+button.btn-secondary {
+  background-color: #607d8b;
+  color: #fff;
+}
+
+button.btn-clear {
+  background-color: #9e9e9e;
+  color: #fff;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.packet-file-table {
   margin-top: 10px;
 }
 
-progress-bar::after {
-  content: '';
-  display: block;
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table, th, td {
+  border: 1px solid #ddd;
+}
+
+th, td {
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f5f5f5;
+}
+
+.sending-info-section p {
+  margin: 5px 0;
+  color: #333;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-inner {
   height: 100%;
-  width: var(--progress, 0%);
   background-color: #4caf50;
+  transition: width 0.2s;
 }
 </style>
