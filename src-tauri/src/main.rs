@@ -5,9 +5,7 @@ mod commandes;
 use std::sync::{Arc, Mutex};
 
 use commandes::{
-        get_interfaces, 
-        get_status, 
-        update_status, 
+        get_interfaces,
         start_packet_sending,
         pause_packet_sending
     };
@@ -46,8 +44,6 @@ fn main() -> Result<(), tauri::Error>{
         .manage(sim_state)
         .invoke_handler(tauri::generate_handler![
             get_interfaces,
-            get_status,
-            update_status,
             start_packet_sending,
             pause_packet_sending
         ])

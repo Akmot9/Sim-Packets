@@ -5,7 +5,10 @@ use tauri::{command, State};
 use crate::errors::Error;
 
 #[command(async)]
-pub fn get_interfaces() -> Result<Vec<String>, Error> {
+pub fn get_interfaces(
+        window: tauri::Window,
+        sim_state_mutex: State<'_, Arc<Mutex<SimPcapState>>>
+    ) -> Result<Vec<String>, Error> {
     // Attempt to retrieve the list of all network interfaces via the pnet datalink module.
     let interfaces = datalink::interfaces();
 
@@ -38,17 +41,37 @@ pub fn get_interfaces() -> Result<Vec<String>, Error> {
             }
         })
         .collect();
+    let state = Arc::clone(&sim_state_mutex);
+    // Spawn a new thread
+    std::thread::spawn(move || -> Result<(), Error> {
+        // Create an infinite loop
+        loop {
+            // Synchronize the state once per second
+            std::thread::sleep(std::time::Duration::from_secs(1));
+            // Emit an event with the SystemState as its payload
+            window
+                // Like a good developer you don't use `.unwrap()` on a Result
+                .emit("system_state_update", state.lock()?.clone())
+                .unwrap();
+        }
+    });
 
     // Return the vector of interface names.
     Ok(names)
 }
 
 #[command(async)]
-pub fn start_packet_sending(state_mutex: State<'_, Arc<Mutex<SimPcapState>>>, interface: String) -> Result<SimPcapState, Error> {
+pub fn start_packet_sending(
+        state_mutex: State<'_, Arc<Mutex<SimPcapState>>>, 
+        interface: String,
+        files: Vec<String>
+    ) -> Result<SimPcapState, Error> {
+
     println!("Interface: {interface}");
     let mut state = state_mutex
         .lock()?;
-    state.start_simulation()?;
+    state.start_simulation(interface, files)?;
+    
     println!("state: {:?}", state);
     Ok(state.clone())
 }
@@ -61,25 +84,4 @@ pub fn pause_packet_sending(state_mutex: State<'_, Arc<Mutex<SimPcapState>>>) ->
     state.stop_simulation()?;
     println!("state: {:?}", state);
     Ok(state.clone())
-}
-
-#[command]
-pub fn get_status(state_mutex: State<'_, Arc<Mutex<SimPcapState>>>) -> Result<bool, String> {
-    let state = state_mutex
-        .lock()
-        .map_err(|_| "Failed to acquire lock".to_string())?;
-    println!("sim_status: {}", state.sim_status);
-    Ok(state.sim_status)
-}
-
-#[command]
-pub fn update_status(
-    state_mutex: State<'_, Arc<Mutex<SimPcapState>>>,
-    sim_status: bool,
-) -> Result<(), String> {
-    let mut state = state_mutex
-        .lock()
-        .map_err(|_| "Failed to acquire lock".to_string())?;
-    state.sim_status = sim_status;
-    Ok(())
 }

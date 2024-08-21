@@ -62,11 +62,11 @@
         <div class="progress-bar-inner" :style="{ width: progress + '%' }"></div>
       </div>
     </div>
-
     <div class="control-buttons">
       <button
-        :class="['btn', isPlaying ? 'btn-warning' : 'btn-primary']"
+        :class="['btn', isPlaying ? 'btn-warning' : 'btn-primary', { 'btn-disabled': packetFiles.length === 0 }]"
         @click="togglePlayPause"
+        :disabled="packetFiles.length === 0"
       >
         {{ isPlaying ? 'Pause' : 'Play' }}
       </button>
@@ -79,6 +79,7 @@
 import { invoke } from '@tauri-apps/api/tauri';
 import { open } from '@tauri-apps/api/dialog';
 import { exit } from '@tauri-apps/api/process';
+import { listen } from '@tauri-apps/api/event'
 
 export default {
   data() {
@@ -108,6 +109,9 @@ export default {
     } catch (error) {
       console.error('Failed to load interfaces:', error);
     }
+    await listen('system_state_update', (event) => {
+      this.updateSimulationState(event.payload);
+    })
   },
   methods: {
     async addFiles() {
@@ -136,20 +140,30 @@ export default {
       // Logic to start packet sending
       invoke('start_packet_sending', { 
         interface: this.selectedAdapter,
+        files: this.packetFiles
       
-      }).catch(error => {
+      }).
+      then((message) => this.updateSimulationState(message))
+      .catch(error => {
         console.error('Failed to start packet sending:', error);
         this.status = 'Error starting packet sending';
-      });
+      })
     },
     pause() {
       this.isPlaying = false;
       this.status = 'Simulation paused.';
       // Logic to pause the packet sending process
-      invoke('pause_packet_sending').catch(error => {
+      invoke('pause_packet_sending')
+      then((message) => this.updateSimulationState(message))
+      .catch(error => {
         console.error('Failed to pause packet sending:', error);
         this.status = 'Error pausing packet sending';
       });
+    },
+    updateSimulationState(message) {
+    this.packetsSent = message.packet_sended;
+    this.isPlaying = message.sim_status;
+    this.status = this.isPlaying ? 'Simulation running...' : 'Simulation paused.';
     },
     async close() {
       await exit(1);
@@ -225,7 +239,7 @@ button.btn-danger {
 }
 
 button.btn-secondary {
-  background-color: #607d8b;
+  background-color: #fd0606;
   color: #fff;
 }
 
@@ -236,6 +250,18 @@ button.btn-clear {
 
 button:hover {
   opacity: 0.9;
+}
+
+button.btn-disabled {
+  background-color: #cccccc; /* Light gray background */
+  color: #666666; /* Dark gray text */
+  cursor: not-allowed; /* Show not-allowed cursor when hovering over a disabled button */
+  opacity: 0.6; /* Slightly faded appearance */
+}
+
+/* Hover effect should be removed or reduced for disabled button */
+button.btn-disabled:hover {
+  opacity: 0.6; /* Maintain the same opacity on hover */
 }
 
 .packet-file-table {

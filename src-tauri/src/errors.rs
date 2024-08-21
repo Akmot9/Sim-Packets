@@ -29,6 +29,11 @@ pub enum Error {
 
     #[error("interface error: {0}")]
     InterfaceError(#[from] InterfaceError),
+
+    // Custom error for issues with network channel creation
+    #[error("Failed to create datalink channel: {0}")]
+    ChannelError(String),
+
 }
 // Implement Serialize for the error
 impl serde::Serialize for Error {

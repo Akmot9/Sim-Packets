@@ -1,7 +1,8 @@
 pub mod sim_packet;
 use crate::errors::Error;
 use serde::Serialize;
-use sim_packet::try_find_interface;
+use sim_packet::{sim, try_find_interface};
+
 
 #[derive(Debug, Serialize, Clone)]
 pub struct SimPcapState {
@@ -32,10 +33,13 @@ impl Default for SimPcapState {
 }
 
 impl SimPcapState {
-    pub fn start_simulation(&mut self) -> Result<bool, Error> {
+    pub fn start_simulation(&mut self, interface: String, files: Vec<String>) -> Result<bool, Error> {
         // Update the simulation status
         self.sim_status = true;
 
+        let true_interface = try_find_interface(interface)?;
+        println!("flies: {:?}", files);
+        sim(true_interface, files)?;
         // Return the new status
         Ok(self.sim_status)
     }
