@@ -14,34 +14,29 @@ mod tauri_state;
 use tauri_state::SimPcapState;
 
 mod errors;
-use errors::Error;
+
+use tauri::Manager;
+use tauri::GlobalShortcutManager;
 
 fn main() -> Result<(), tauri::Error>{
-    // Create the SystemState
-    let sim_state = Arc::new(Mutex::new(SimPcapState::default()));
-    // Create a new reference to it
-    let arced_state = Arc::clone(&sim_state);
-    // Pass the reference into a new background thread that increments the power 
-    // by 1 once per second, just so we can see that it's doing something
-    std::thread::spawn(move || -> Result<(), Error> {
-        loop {
-            if arced_state.lock()?.sim_status {
-                std::thread::sleep(std::time::Duration::from_secs(1));
-                let mut state = arced_state.lock()?;
-                state.packet_sended = state.packet_sended + 1;
-                println!("state: {:?}", state);
-            } else {
-                std::thread::sleep(std::time::Duration::from_secs(1));
-                let state = arced_state.lock()?;
-                println!("state: {:?}", state);
-                
-            }
-        }
-    });
-    
     tauri::Builder::default()
         // Manage our arced SystemState
-        .manage(sim_state)
+        .manage( Arc::new(Mutex::new(SimPcapState::default())))
+        .setup(|app| {
+            let app_handle = app.handle(); // Get the AppHandle
+            let window = app_handle.get_window("main").unwrap();
+            
+            // Open DevTools
+            window.open_devtools();
+            
+            // Register a global shortcut
+            let mut shortcuts = app_handle.global_shortcut_manager();
+            shortcuts.register("CmdOrCtrl+Shift+I", move || {
+              window.open_devtools();
+            }).unwrap();
+      
+            Ok(())
+          })
         .invoke_handler(tauri::generate_handler![
             get_interfaces,
             start_packet_sending,

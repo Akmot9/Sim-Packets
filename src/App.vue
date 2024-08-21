@@ -147,7 +147,9 @@ export default {
       .catch(error => {
         console.error('Failed to start packet sending:', error);
         this.status = 'Error starting packet sending';
-        message('Remplissez les champs en rouges ...', { title: 'Champs non remplis', type: 'warning' ,message: error})
+        message(error, 
+        { title: 'Failed to start packet sending:', 
+        type: 'warning'})
       })
     },
     pause() {

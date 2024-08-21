@@ -34,9 +34,11 @@
     },
     "windows": [
       {
-        "title": "sim_packets",
-        "width": 800,
-        "height": 600
+        "label": "main",
+        "url": "index.html",
+        "title": "Sim packets",
+        "width": 1000,
+        "height": 800
       }
     ],
     "security": {
