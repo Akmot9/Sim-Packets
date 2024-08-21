@@ -77,7 +77,7 @@
 
 <script>
 import { invoke } from '@tauri-apps/api/tauri';
-import { open } from '@tauri-apps/api/dialog';
+import { open, message } from '@tauri-apps/api/dialog';
 import { exit } from '@tauri-apps/api/process';
 import { listen } from '@tauri-apps/api/event'
 
@@ -147,6 +147,7 @@ export default {
       .catch(error => {
         console.error('Failed to start packet sending:', error);
         this.status = 'Error starting packet sending';
+        message('Remplissez les champs en rouges ...', { title: 'Champs non remplis', type: 'warning' ,message: error})
       })
     },
     pause() {
@@ -157,7 +158,7 @@ export default {
       then((message) => this.updateSimulationState(message))
       .catch(error => {
         console.error('Failed to pause packet sending:', error);
-        this.status = 'Error pausing packet sending';
+        this.status = ('Failed to pause packet sending:', error);
       });
     },
     updateSimulationState(message) {

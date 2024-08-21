@@ -40,6 +40,7 @@ impl SimPcapState {
         let true_interface = try_find_interface(interface)?;
         println!("flies: {:?}", files);
         sim(true_interface, files)?;
+        self.sim_status = false;
         // Return the new status
         Ok(self.sim_status)
     }
