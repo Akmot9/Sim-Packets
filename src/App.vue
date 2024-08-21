@@ -12,11 +12,11 @@
         </select>
       </div>
       <div class="file-group">
-        <label for="packetFile">Packet File:</label>
+        <label for="packetFiles">Packet File:</label>
         <button class="btn" @click="addFiles">Add File(s)</button>
         <button class="btn btn-clear" @click="clearFiles">Clear</button>
       </div>
-      <div class="packet-file-table" v-if="packetFile.length">
+      <div class="packet-file-table" v-if="packetFiles.length">
         <table>
           <thead>
             <tr>
@@ -25,7 +25,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(file, index) in packetFile" :key="index">
+            <tr v-for="(file, index) in packetFiles" :key="index">
               <td>{{ index + 1 }}</td>
               <td>{{ file }}</td>
             </tr>
@@ -64,8 +64,12 @@
     </div>
 
     <div class="control-buttons">
-      <button class="btn btn-primary" @click="play">Play</button>
-      <button class="btn btn-warning" @click="pause">Pause</button>
+      <button
+        :class="['btn', isPlaying ? 'btn-warning' : 'btn-primary']"
+        @click="togglePlayPause"
+      >
+        {{ isPlaying ? 'Pause' : 'Play' }}
+      </button>
       <button class="btn btn-secondary" @click="close">Close</button>
     </div>
   </div>
@@ -81,7 +85,7 @@ export default {
     return {
       selectedAdapter: '',
       adapters: [],
-      packetFile: [],
+      packetFiles: [],
       playSpeed: 1,
       loopSending: false,
       loopCount: 1,
@@ -91,6 +95,7 @@ export default {
       packetsSent: 0,
       status: 'Please select an adapter and a packet file, Click Play button to start.',
       progress: 0,
+      isPlaying: false, // Track if currently playing or paused
     };
   },
   async mounted() {
@@ -111,17 +116,40 @@ export default {
         filters: [{ name: 'Capture File', extensions: ['pcap', 'pcapng', 'cap'] }],
       });
       if (files) {
-        this.packetFile.push(...files);
+        this.packetFiles.push(...files);
       }
     },
     clearFiles() {
-      this.packetFile = [];
+      this.packetFiles = [];
     },
+    togglePlayPause() {
+      if (this.isPlaying) {
+        this.pause();
+      } else {
+        this.play();
+      }
+    },
+
     play() {
-      invoke('get_status')
+      this.isPlaying = true;
+      this.status = 'Simulation started...';
+      // Logic to start packet sending
+      invoke('start_packet_sending', { 
+        interface: this.selectedAdapter,
+      
+      }).catch(error => {
+        console.error('Failed to start packet sending:', error);
+        this.status = 'Error starting packet sending';
+      });
     },
     pause() {
-      // Logic for pausing the packet sending process
+      this.isPlaying = false;
+      this.status = 'Simulation paused.';
+      // Logic to pause the packet sending process
+      invoke('pause_packet_sending').catch(error => {
+        console.error('Failed to pause packet sending:', error);
+        this.status = 'Error pausing packet sending';
+      });
     },
     async close() {
       await exit(1);
