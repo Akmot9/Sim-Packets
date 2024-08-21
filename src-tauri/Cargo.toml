@@ -19,6 +19,9 @@ thiserror = "1"
 pnet = "0.35.0"
 pcap = "2.0.0"
 
+[profile.release]
+debug = true
+
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]
