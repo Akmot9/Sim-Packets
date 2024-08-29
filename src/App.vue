@@ -10,6 +10,7 @@
         <select v-model="selectedAdapter" id="adapter">
           <option v-for="adapter in adapters" :key="adapter" :value="adapter">{{ adapter }}</option>
         </select>
+        <button class="btn btn-add-adapter" @click="openAddInterfaceModal">+</button>
       </div>
       <div class="file-group">
         <label for="packetFiles">Packet File:</label>
@@ -72,6 +73,10 @@
       </button>
       <button class="btn btn-secondary" @click="close">Close</button>
     </div>
+
+    <!-- Modal component for adding new network interface -->
+    <AddInterfaceModal v-if="showAddInterfaceModal" @close="closeAddInterfaceModal" @interfaceAdded="handleInterfaceAdded" />
+
   </div>
 </template>
 
@@ -81,7 +86,12 @@ import { open, message } from '@tauri-apps/api/dialog';
 import { exit } from '@tauri-apps/api/process';
 import { listen } from '@tauri-apps/api/event'
 
+import AddInterfaceModal from '/src/components/AddInterfaceModal.vue';
+
 export default {
+  components: {
+    AddInterfaceModal,
+  },
   data() {
     return {
       selectedAdapter: '',
@@ -97,6 +107,7 @@ export default {
       status: 'Please select an adapter and a packet file, Click Play button to start.',
       progress: 0,
       isPlaying: false, // Track if currently playing or paused
+      showAddInterfaceModal: false, // Modal visibility state
     };
   },
   async mounted() {
@@ -114,6 +125,12 @@ export default {
     })
   },
   methods: {
+    openAddInterfaceModal() {
+      this.showAddInterfaceModal = true;
+    },
+    closeAddInterfaceModal() {
+      this.showAddInterfaceModal = false;
+    },
     async addFiles() {
       const files = await open({
         multiple: true,
@@ -204,6 +221,27 @@ h1 {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
+}
+
+.adapter-select-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+button.btn-add-adapter {
+  margin-left: 10px;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+button.btn-add-adapter:hover {
+  background-color: #0056b3;
 }
 
 label {
