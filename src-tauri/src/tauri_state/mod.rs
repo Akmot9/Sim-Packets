@@ -3,7 +3,6 @@ use crate::errors::Error;
 use serde::Serialize;
 use sim_packet::{sim, try_find_interface};
 
-
 #[derive(Debug, Serialize, Clone)]
 pub struct SimPcapState {
     // speed: u32,
@@ -33,7 +32,11 @@ impl Default for SimPcapState {
 }
 
 impl SimPcapState {
-    pub fn start_simulation(&mut self, interface: String, files: Vec<String>) -> Result<bool, Error> {
+    pub fn start_simulation(
+        &mut self,
+        interface: String,
+        files: Vec<String>,
+    ) -> Result<bool, Error> {
         // Update the simulation status
         self.sim_status = true;
 

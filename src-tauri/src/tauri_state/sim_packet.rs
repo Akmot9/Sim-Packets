@@ -1,12 +1,12 @@
 use crate::errors::{Error, InterfaceError};
-use pnet::datalink::{self, Channel, DataLinkSender};
 use pcap::Capture;
+use pnet::datalink::{self, Channel, DataLinkSender};
 
 pub fn try_find_interface(interface_name: String) -> Result<datalink::NetworkInterface, Error> {
     let interfaces = datalink::interfaces();
-    let interface = interfaces
-        .into_iter()
-        .find(|iface| iface.name == interface_name || iface.mac.unwrap().to_string() == interface_name);
+    let interface = interfaces.into_iter().find(|iface| {
+        iface.name == interface_name || iface.mac.unwrap().to_string() == interface_name
+    });
 
     match interface {
         Some(iface) => Ok(iface),
@@ -33,7 +33,12 @@ pub fn sim(interface: datalink::NetworkInterface, file_paths: Vec<String>) -> Re
 
 fn handle_pcap_file(file_path: String, tx: &mut Box<dyn DataLinkSender>) -> Result<(), Error> {
     // Attempt to open the pcap file, propagating the error if it fails
-    let mut cap = Capture::from_file(file_path).map_err(|_| Error::Io(std::io::Error::new(std::io::ErrorKind::Other, "Failed to open pcap file")))?;
+    let mut cap = Capture::from_file(file_path).map_err(|_| {
+        Error::Io(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            "Failed to open pcap file",
+        ))
+    })?;
 
     // Iterate over the packets, print them in hexadecimal, and send them over the network interface
     while let Ok(packet) = cap.next_packet() {
@@ -43,7 +48,6 @@ fn handle_pcap_file(file_path: String, tx: &mut Box<dyn DataLinkSender>) -> Resu
 
     Ok(())
 }
-
 
 // Fonction pour afficher un paquet en hexadécimal
 fn print_packet_in_hex(data: &[u8]) {
@@ -57,7 +61,7 @@ fn print_packet_in_hex(data: &[u8]) {
 fn send_packet(tx: &mut Box<dyn DataLinkSender>, data: Vec<u8>) -> Result<(), Error> {
     tx.build_and_send(1, data.len(), &mut |packet| {
         packet.copy_from_slice(&data);
-    }); 
+    });
 
     Ok(())
 }

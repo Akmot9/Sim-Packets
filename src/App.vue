@@ -81,9 +81,9 @@
 </template>
 
 <script>
-import { invoke } from '@tauri-apps/api/tauri';
-import { open, message } from '@tauri-apps/api/dialog';
-import { exit } from '@tauri-apps/api/process';
+import { invoke } from '@tauri-apps/api/core';
+import { open, message } from '@tauri-apps/plugin-dialog';
+import { exit } from '@tauri-apps/plugin-process';
 import { listen } from '@tauri-apps/api/event'
 
 import AddInterfaceModal from '/src/components/AddInterfaceModal.vue';

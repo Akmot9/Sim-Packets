@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 
 export default {
   data() {
