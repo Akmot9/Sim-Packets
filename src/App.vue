@@ -153,6 +153,7 @@ export default defineComponent({
         this.status = `Error starting packet sending: ${err}`;
       });
     },
+    
     pause() {
       this.isPlaying = false;
       this.status = 'Simulation paused.';
@@ -178,6 +179,7 @@ export default defineComponent({
     async close(): Promise<void> {
       await exit(1);
     },
+
     updateOptions(updatedOptions: { playSpeed: number; loopSending: boolean; loopCount: number; delayBetweenLoops: number; ignoreFileError: boolean }) {
       this.playSpeed = updatedOptions.playSpeed;
       this.loopSending = updatedOptions.loopSending;
