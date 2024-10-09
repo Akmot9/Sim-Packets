@@ -21,35 +21,41 @@
     </div>
   </div>
 </template>
-  
+
 <script lang="ts">
-  export default {
-    props: {
-      packetFiles: Array,
+export default {
+  props: {
+    packetFiles: {
+      type: Array,
+      default: () => [],
     },
-  };
+  },
+};
 </script>
 
 <style scoped>
-  .packet-file-table {
-    margin-top: 10px;
-  }
+.packet-file-table {
+  margin-top: 10px;
+}
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-  table, th, td {
-    border: 1px solid #ddd;
-  }
+table,
+th,
+td {
+  border: 1px solid #ddd;
+}
 
-  th, td {
-    padding: 8px;
-    text-align: left;
-  }
+th,
+td {
+  padding: 8px;
+  text-align: left;
+}
 
-  th {
-    background-color: #f5f5f5;
-  }
+th {
+  background-color: #f5f5f5;
+}
 </style>

@@ -82,7 +82,7 @@ export default {
     loopCount: Number,
     delayBetweenLoops: Number,
     ignoreFileError: Boolean,
-    paquetPerPacket: Boolean
+    paquetPerPacket: Boolean,
   },
   data() {
     return {
@@ -91,28 +91,28 @@ export default {
       localLoopCount: this.loopCount,
       localDelayBetweenLoops: this.delayBetweenLoops,
       localIgnoreFileError: this.ignoreFileError,
-      localPaquetPerPacket: this.paquetPerPacket
+      localPaquetPerPacket: this.paquetPerPacket,
     };
   },
   methods: {
     updatePlaySpeed() {
-      this.$emit('update:playSpeed', this.localPlaySpeed);
+      this.$emit("update:playSpeed", this.localPlaySpeed);
     },
     updateLoopSending() {
-      this.$emit('update:loopSending', this.localLoopSending);
+      this.$emit("update:loopSending", this.localLoopSending);
     },
     updateLoopCount() {
-      this.$emit('update:loopCount', this.localLoopCount);
+      this.$emit("update:loopCount", this.localLoopCount);
     },
     updateDelayBetweenLoops() {
-      this.$emit('update:delayBetweenLoops', this.localDelayBetweenLoops);
+      this.$emit("update:delayBetweenLoops", this.localDelayBetweenLoops);
     },
     updateIgnoreFileError() {
-      this.$emit('update:ignoreFileError', this.localIgnoreFileError);
+      this.$emit("update:ignoreFileError", this.localIgnoreFileError);
     },
     updatePaquetPerPacket() {
-      this.$emit('update:paquetPerPacket', this.localPaquetPerPacket);
-    }
+      this.$emit("update:paquetPerPacket", this.localPaquetPerPacket);
+    },
   },
   watch: {
     playSpeed(newVal) {
@@ -132,8 +132,8 @@ export default {
     },
     paquetPerPacket(newVal) {
       this.localPaquetPerPacket = newVal;
-    }
-  }
+    },
+  },
 };
 </script>
 
