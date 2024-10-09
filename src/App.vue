@@ -212,6 +212,11 @@ export default defineComponent({
     },
   },
 });
+
+export function sum(a: number, b: number) {
+  return a + b
+}
+
 </script>
 
 <style scoped>
