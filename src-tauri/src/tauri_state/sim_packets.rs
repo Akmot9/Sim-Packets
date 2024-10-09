@@ -70,7 +70,5 @@ fn send_packet(tx: &mut Box<dyn DataLinkSender>, data: Vec<u8>, state: &mut SimP
         packet.copy_from_slice(&data);
     });
     state.increment_packet_sended();
-            
-
     Ok(())
 }

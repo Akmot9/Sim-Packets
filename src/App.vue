@@ -111,6 +111,9 @@ export default defineComponent({
     });
   },
   methods: {
+    handleInterfaceAdded() {
+      // code to handle the interfaceAdded event
+    },
     openAddInterfaceModal() {
       this.showAddInterfaceModal = true;
     },
@@ -192,7 +195,7 @@ export default defineComponent({
     flex-direction: column;
     align-items: center;
     width: 100%;
-    max-width: 1200px;
+    max-width: 700px;
     margin: 40px auto; /* Ajouter de l'espace en haut et en bas */
     padding: 30px;
     background-color: #ffffff; /* Fond blanc pour contraster avec le fond général */
