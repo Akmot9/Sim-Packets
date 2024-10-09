@@ -1,3 +1,3 @@
-package com.sim_packets.dev
+package com.sim_packets.app
 
 class MainActivity : TauriActivity()

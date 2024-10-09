@@ -1,9 +1,26 @@
 {
+  "$schema": "https://schema.tauri.app/config/2.0.0",
+  "productName": "sim-packets",
+  "version": "0.1.0",
+  "identifier": "com.sim-packets.app",
   "build": {
     "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm run build",
-    "frontendDist": "../dist",
-    "devUrl": "http://localhost:1420"
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "sim-packets",
+        "width": 800,
+        "height": 600
+        
+      }
+    ],
+    "security": {
+      "csp": null
+    }
   },
   "bundle": {
     "active": true,
@@ -14,25 +31,6 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
-  },
-  "productName": "sim_packets",
-  "mainBinaryName": "sim_packets",
-  "version": "0.0.0",
-  "identifier": "com.sim-packets.dev",
-  "plugins": {},
-  "app": {
-    "security": {
-      "csp": null
-    },
-    "windows": [
-      {
-        "label": "main",
-        "url": "index.html",
-        "title": "Sim packets",
-        "width": 1000,
-        "height": 800
-      }
     ]
   }
 }

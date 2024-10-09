@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">sim_packets</string>
-    <string name="main_activity_title">sim_packets</string>
+    <string name="app_name">sim-packets</string>
+    <string name="main_activity_title">sim-packets</string>
 </resources>

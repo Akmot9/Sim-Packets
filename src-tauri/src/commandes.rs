@@ -9,6 +9,7 @@ pub fn get_interfaces(
     window: tauri::Window,
     sim_state_mutex: State<'_, Arc<Mutex<SimPcapState>>>,
 ) -> Result<Vec<String>, Error> {
+
     // Attempt to retrieve the list of all network interfaces via the pnet datalink module.
     let interfaces = datalink::interfaces();
 
@@ -56,7 +57,6 @@ pub fn get_interfaces(
         }
     });
 
-    println!("Interfaces detected: {:?}", names);
     log::info!("Interfaces detected: {:?}", names);
     // Return the vector of interface names.
     Ok(names)
@@ -68,11 +68,10 @@ pub fn start_packet_sending(
     interface: String,
     files: Vec<String>,
 ) -> Result<SimPcapState, Error> {
-    println!("Interface choosed: {interface}");
+    log::info!("Interface choosed: {interface}");
     let mut state = state_mutex.lock()?;
     state.start_simulation(interface, files)?;
-
-    println!("state: {:?}", state);
+    log::info!("state: {:?}", state);
     Ok(state.clone())
 }
 
@@ -80,9 +79,9 @@ pub fn start_packet_sending(
 pub fn pause_packet_sending(
     state_mutex: State<'_, Arc<Mutex<SimPcapState>>>,
 ) -> Result<SimPcapState, Error> {
-    println!("pause_packet_sending");
+    log::info!("pause_packet_sending");
     let mut state = state_mutex.lock()?;
     state.stop_simulation()?;
-    println!("state: {:?}", state);
+    log::info!("state: {:?}", state);
     Ok(state.clone())
 }

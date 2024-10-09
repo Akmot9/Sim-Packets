@@ -1,25 +1,27 @@
 {
-  "name": "sim_packets",
+  "name": "sim-packets",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "tauri": "tauri"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.0.1",
+    "@tauri-apps/api": ">=2.0.0",
     "@tauri-apps/plugin-dialog": "^2.0.0",
     "@tauri-apps/plugin-log": "^2.0.0",
     "@tauri-apps/plugin-process": "^2.0.0",
-    "@tauri-apps/plugin-shell": "^2.0.0",
+    "@tauri-apps/plugin-shell": ">=2.0.0",
     "vue": "^3.3.4"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.0.1",
+    "@tauri-apps/cli": ">=2.0.0",
     "@vitejs/plugin-vue": "^5.0.5",
-    "vite": "^5.3.1"
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1",
+    "vue-tsc": "^2.0.22"
   }
 }
