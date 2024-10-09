@@ -52,7 +52,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { exit } from '@tauri-apps/plugin-process';
 import { listen } from '@tauri-apps/api/event';
-import { attachConsole } from '@tauri-apps/plugin-log'; // Attacher la console
+import { error, attachConsole } from '@tauri-apps/plugin-log'; // Pour attacher la console
 
 import HeaderComponent from './components/HeaderComponent.vue';
 import AdapterSelection from './components/AdapterSelection.vue';
@@ -91,10 +91,8 @@ export default defineComponent({
     };
   },
   async mounted() {
-    // Attache la console pour rediriger les logs vers le terminal Rust
-    const detach = await attachConsole();
-    // Détachement des logs si nécessaire (optionnel)
-    detach(); 
+    // Attacher la console pour capturer tous les logs dans Rust
+    await attachConsole();
 
     try {
       const interfaces: string[] = await invoke('get_interfaces');
@@ -104,12 +102,12 @@ export default defineComponent({
       }
     } catch (err: any) {
       console.error('Failed to load interfaces:', err);
-      
+      error(`Error loading interfaces: ${err}`);  // Loguer l'erreur dans Rust via Tauri
     }
 
+    // Ecouter les événements système
     await listen('system_state_update', (event: any) => {
-      this.updateSimulationState(event.payload),
-      console.info(event.payload);
+      this.updateSimulationState(event.payload);
     });
   },
   methods: {
@@ -148,8 +146,8 @@ export default defineComponent({
       .then((message: any) => this.updateSimulationState(message))
       .catch((err: any) => {
         console.error('Failed to start packet sending:', err);
-    
-        this.status = 'Error starting packet sending: ${err}';
+        error(`Error starting packet sending: ${err}`);  // Loguer l'erreur dans Rust via Tauri
+        this.status = `Error starting packet sending: ${err}`;
       });
     },
     pause() {
@@ -158,7 +156,7 @@ export default defineComponent({
       invoke('pause_packet_sending')
       .then((message: any) => this.updateSimulationState(message))
       .catch((err: any) => {
-        console.error('Failed to pause packet sending:', err);
+        console.log('Failed to pause packet sending:', err);
         
         this.status = 'Failed to pause packet sending.';
       });

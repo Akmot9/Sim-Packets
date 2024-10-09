@@ -14,7 +14,7 @@ pub fn run() -> Result<(), tauri::Error> {
     
         // Add the Tauri logging plugin to log messages from the application
         .plugin(tauri_plugin_log::Builder::new()
-            .clear_targets()
+            
             .target(tauri_plugin_log::Target::new(
                 tauri_plugin_log::TargetKind::Stdout,
             ))
