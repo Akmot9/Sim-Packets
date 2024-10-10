@@ -30,14 +30,7 @@
     </div>
 
     <!-- Section for options like play speed, loop control, and file error handling -->
-    <OptionsSection
-      :playSpeed="playSpeed"
-      :loopSending="loopSending"
-      :loopCount="loopCount"
-      :delayBetweenLoops="delayBetweenLoops"
-      :ignoreFileError="ignoreFileError"
-      @updateOptions="updateOptions"
-    />
+    <OptionsSection/>
 
     <!-- Section to display information about the current file, packets sent, status, and progress -->
     <SendingInfoSection
@@ -66,6 +59,8 @@ import { exit } from "@tauri-apps/plugin-process";
 import { listen } from "@tauri-apps/api/event";
 import { error, attachConsole } from "@tauri-apps/plugin-log"; // Pour attacher la console
 
+import { useSimulationStore } from './simulationStore';
+
 import HeaderComponent from "./components/HeaderComponent.vue";
 import AdapterSelection from "./components/AdapterSelection.vue";
 import PacketFileSelection from "./components/PacketFileSelection.vue";
@@ -83,6 +78,10 @@ export default defineComponent({
     SendingInfoSection,
     ControlButtons,
     AddInterfaceModal,
+  },
+  setup() {
+    const store = useSimulationStore();
+    return { store };
   },
   data() {
     return {
@@ -148,14 +147,14 @@ export default defineComponent({
       this.packetFiles = [];
     },
     togglePlayPause() {
-      if (this.isPlaying) {
+      if (this.store.sim_status) {
         this.pause();
       } else {
         this.play();
       }
     },
     play() {
-      this.isPlaying = true;
+      this.store.setSimStatus(true) ;
       this.status = "Simulation started...";
       invoke("start_packet_sending", {
         interface: this.selectedAdapter,
@@ -170,7 +169,7 @@ export default defineComponent({
     },
 
     pause() {
-      this.isPlaying = false;
+      this.store.setSimStatus(true) ;
       this.status = "Simulation paused.";
       invoke("pause_packet_sending")
         .then((message: any) => this.updateSimulationState(message))
@@ -181,12 +180,13 @@ export default defineComponent({
         });
     },
     updateSimulationState(message: any) {
-      this.currentFile = message.current_file;
-      this.packetsSent = message.packet_sended;
-      this.isPlaying = message.sim_status;
-      this.status = this.isPlaying
+      this.store.updateCurrentFile(message.current_file || this.store.current_file);
+      this.store.packet_sended = message.packet_sended || this.store.packet_sended;
+      this.store.setSimStatus(message.sim_status || this.store.sim_status);
+      this.status = this.store.sim_status
         ? "Simulation running..."
         : "Simulation paused.";
+      this.store.packet_debug = message.packet_debug || this.store.packet_debug;
     },
 
     /**
@@ -195,20 +195,6 @@ export default defineComponent({
      */
     async close(): Promise<void> {
       await exit(1);
-    },
-
-    updateOptions(updatedOptions: {
-      playSpeed: number;
-      loopSending: boolean;
-      loopCount: number;
-      delayBetweenLoops: number;
-      ignoreFileError: boolean;
-    }) {
-      this.playSpeed = updatedOptions.playSpeed;
-      this.loopSending = updatedOptions.loopSending;
-      this.loopCount = updatedOptions.loopCount;
-      this.delayBetweenLoops = updatedOptions.delayBetweenLoops;
-      this.ignoreFileError = updatedOptions.ignoreFileError;
     },
   },
 });

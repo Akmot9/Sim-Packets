@@ -5,7 +5,13 @@ use std::sync::{Arc, Mutex}; // Import `Arc` (atomic reference counting) and `Mu
 mod tauri_state; // Declare the module `tauri_state`, which likely contains shared state management logic
 use tauri_state::SimPcapState; // Use `SimPcapState` struct from the `tauri_state` module, which manages the state for the packet capture simulation
 
-use commandes::{get_interfaces, pause_packet_sending, start_packet_sending}; // Import specific functions from the `commandes` module
+use commandes::{
+    resume_packet_sending, 
+    get_interfaces, 
+    pause_packet_sending, 
+    start_packet_sending,
+    update_simulation_state,
+}; // Import specific functions from the `commandes` module
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)] // Macro to define the entry point for mobile platforms if the `mobile` config attribute is set
 pub fn run() -> Result<(), tauri::Error> {
@@ -34,7 +40,9 @@ pub fn run() -> Result<(), tauri::Error> {
         .invoke_handler(tauri::generate_handler![
             get_interfaces,        // Command to get available network interfaces
             pause_packet_sending,  // Command to pause packet sending
-            start_packet_sending   // Command to start packet sending
+            start_packet_sending,   // Command to start packet sending
+            resume_packet_sending,
+            update_simulation_state
         ])
 
         // Start the Tauri runtime with the generated application context

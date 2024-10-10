@@ -23,7 +23,7 @@ export default {
       get() {
         return this.modelValue;
       },
-      set(value: any) {
+      set(value: string) {
         this.$emit("update:modelValue", value);
       },
     },

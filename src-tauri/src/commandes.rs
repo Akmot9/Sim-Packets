@@ -75,7 +75,7 @@ pub fn start_packet_sending(
     Ok(state.clone())
 }
 
-#[command]
+#[command(async)]
 pub fn pause_packet_sending(
     state_mutex: State<'_, Arc<Mutex<SimPcapState>>>,
 ) -> Result<SimPcapState, Error> {
@@ -83,5 +83,24 @@ pub fn pause_packet_sending(
     let mut state = state_mutex.lock()?;
     state.stop_simulation()?;
     log::info!("state: {:?}", state);
+    Ok(state.clone())
+}
+#[command(async)]
+pub fn resume_packet_sending(
+    state_mutex: State<'_, Arc<Mutex<SimPcapState>>>,
+) -> Result<SimPcapState, Error> {
+    log::info!("resume_packet_sending");
+    let mut state = state_mutex.lock()?;
+    state.resume_simulation()?;
+    log::info!("state: {:?}", state);
+    Ok(state.clone())
+}
+
+#[command(async)]
+pub fn update_simulation_state(state_mutex: State<'_, Arc<Mutex<SimPcapState>>>, pinia_state: SimPcapState) -> Result<SimPcapState, Error> {
+    println!("update_simulation_state");
+    println!("pinia_state: {:?}", pinia_state);
+    let mut state = state_mutex.lock()?;
+    state.update_sate(pinia_state) ;
     Ok(state.clone())
 }

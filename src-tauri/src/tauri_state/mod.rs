@@ -1,9 +1,9 @@
 pub mod sim_packets;
 use crate::errors::Error;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sim_packets::{sim, try_find_interface};
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct SimPcapState {
     // speed: u32,
     // loop_state: bool,
@@ -13,6 +13,7 @@ pub struct SimPcapState {
     pub packet_sended: u32,
     // status: Option<String>,
     pub sim_status: bool,
+    pub packet_debug: bool,
 }
 
 // You might want to implement Default to initialize with default values
@@ -27,6 +28,7 @@ impl Default for SimPcapState {
             packet_sended: 0,
             // status: None,
             sim_status: false,
+            packet_debug: false,
         }
     }
 }
@@ -57,15 +59,34 @@ impl SimPcapState {
         Ok(self.sim_status)
     }
 
+    pub fn resume_simulation(&mut self) -> Result<bool, Error> {
+        log::info!("Resume simulation");
+        // Update the simulation status
+        self.sim_status = true;
+        // Return the new status
+        Ok(self.sim_status)
+    }
+
     // Function to increment the packet_sended counter
     pub fn increment_packet_sended(&mut self) {
         self.packet_sended += 1;
         log::info!("Packet sent: {}", self.packet_sended);
     }
 
-    // Function to update the current file
     pub fn update_current_file(&mut self, file_path: String) {
         self.current_file = Some(file_path);
         log::info!("Current file updated: {}", self.current_file.as_ref().unwrap());
     }
+
+    // Function to update the current file
+    pub fn update_sate(&mut self, pinia_sate: SimPcapState) {
+        self.current_file = pinia_sate.current_file;
+        self.packet_sended = pinia_sate.packet_sended;
+        self.sim_status = pinia_sate.sim_status;
+        self.packet_debug = pinia_sate.packet_debug;
+
+        log::info!("Current file updated: {:?}", self);
+    }
+
+
 }
