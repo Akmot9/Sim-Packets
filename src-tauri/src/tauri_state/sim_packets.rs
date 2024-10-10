@@ -57,11 +57,20 @@ fn handle_pcap_file(file_path: String, tx: &mut Box<dyn DataLinkSender>, state: 
         let hex_data: String = packet.data.iter().map(|byte| format!("{:02X}", byte)).collect::<Vec<String>>().join(" ");
         log::info!("Packet in hex: {}", hex_data);
 
-        check(state);
-
         // Send the packet data over the network interface
+        if !state.packet_debug {
+            send_packet(tx, packet.data.to_vec(), state)?;
+        } else {
+            log::info!("Packet debug is active, pausing the simulation...");
         
-        send_packet(tx, packet.data.to_vec(), state)?;
+            // Met le statut de simulation à "faux" (pause)
+            state.sim_status = false;
+            // Attendre que l'utilisateur change le statut pour reprendre
+            while !state.sim_status {
+                // Boucle jusqu'à ce que `sim_status` soit remis à `true` pour reprendre
+                std::thread::sleep(std::time::Duration::from_millis(100)); // Petite attente pour éviter une boucle serrée
+            }
+        }
     }
 
     Ok(())
@@ -74,25 +83,4 @@ fn send_packet(tx: &mut Box<dyn DataLinkSender>, data: Vec<u8>, state: &mut SimP
     });
     state.increment_packet_sended();
     Ok(())
-}
-
-fn check(state: &mut SimPcapState) {
-    // Si packet_debug est activé, on met la simulation en pause
-    if state.packet_debug {
-        log::info!("Packet debug is active, pausing the simulation...");
-        
-        // Met le statut de simulation à "faux" (pause)
-        state.sim_status = false;
-
-        // Attendre que l'utilisateur change le statut pour reprendre
-        while !state.sim_status {
-            // Boucle jusqu'à ce que `sim_status` soit remis à `true` pour reprendre
-            std::thread::sleep(std::time::Duration::from_millis(100)); // Petite attente pour éviter une boucle serrée
-        }
-
-        log::info!("Resuming simulation...");
-    } else {
-        // Si packet_debug est désactivé, continuer normalement
-        log::info!("Packet debug is off, continuing simulation...");
-    }
 }

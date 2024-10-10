@@ -16,11 +16,23 @@
 </template>
 
 <script lang="ts">
+import { useSimulationStore } from '../simulationStore';
+import { exit } from "@tauri-apps/plugin-process";
+
 export default {
-  props: {
-    isPlaying: Boolean,
-    hasFiles: Boolean,
+  setup() {
+    const store = useSimulationStore();
+    return { store };
   },
+  methods: {
+        /**
+     * Closes the application with the given exit code.
+     * @returns {Promise<void>} - A promise that resolves when the application has been closed.
+     */
+     async close(): Promise<void> {
+      await exit(1);
+    },
+  }
 };
 </script>
 

@@ -41,12 +41,7 @@
     />
 
     <!-- Control buttons for Play/Pause and closing the application -->
-    <ControlButtons
-      :isPlaying="isPlaying"
-      :hasFiles="packetFiles.length > 0"
-      @togglePlayPause="togglePlayPause"
-      @close="close"
-    />
+    <ControlButtons/>
   </div>
 </template>
 
@@ -55,7 +50,6 @@ import { defineComponent } from "vue";
 
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { exit } from "@tauri-apps/plugin-process";
 import { listen } from "@tauri-apps/api/event";
 import { error, attachConsole } from "@tauri-apps/plugin-log"; // Pour attacher la console
 
@@ -119,7 +113,8 @@ export default defineComponent({
 
     // Ecouter les événements système
     await listen("system_state_update", (event: any) => {
-      this.updateSimulationState(event.payload);
+      this.store.loadStateFromTauri(event.payload);
+      
     });
   },
   methods: {
@@ -189,13 +184,7 @@ export default defineComponent({
       this.store.packet_debug = message.packet_debug || this.store.packet_debug;
     },
 
-    /**
-     * Closes the application with the given exit code.
-     * @returns {Promise<void>} - A promise that resolves when the application has been closed.
-     */
-    async close(): Promise<void> {
-      await exit(1);
-    },
+
   },
 });
 

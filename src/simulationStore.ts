@@ -34,8 +34,7 @@ export const useSimulationStore = defineStore('simulation', {
     setPacketDebug(debug: boolean) {
       this.packet_debug = debug;
     },
-    async loadStateFromTauri() {
-        const state_tauri: SimulationState = await invoke('get_simulation_state');
+    async loadStateFromTauri(state_tauri: SimulationState) {
         this.current_file = state_tauri.current_file;
         this.packet_sended = state_tauri.packet_sended;
         this.sim_status = state_tauri.sim_status;
