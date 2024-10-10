@@ -51,7 +51,7 @@ import { defineComponent } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { listen } from "@tauri-apps/api/event";
-import { error, attachConsole } from "@tauri-apps/plugin-log"; // Pour attacher la console
+import { error } from "@tauri-apps/plugin-log"; // Pour attacher la console
 
 import { useSimulationStore } from './simulationStore';
 
@@ -98,7 +98,6 @@ export default defineComponent({
   },
   async mounted() {
     // Attacher la console pour capturer tous les logs dans Rust
-    await attachConsole();
 
     try {
       const interfaces: string[] = await invoke("get_interfaces");
