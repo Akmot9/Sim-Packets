@@ -3,6 +3,15 @@ use crate::errors::Error;
 use serde::{Deserialize, Serialize};
 use sim_packets::{sim, try_find_interface};
 
+#[derive(Debug, Serialize, Clone, Deserialize, Copy, PartialEq)]
+pub enum Moor {
+    INIT,
+    PLAYING,
+    PAUSED,
+    STOPPED,
+    COMPLETED,
+}
+
 #[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct SimPcapState {
     // speed: u32,
@@ -12,7 +21,7 @@ pub struct SimPcapState {
     pub current_file: Option<String>,
     pub packet_sended: u32,
     // status: Option<String>,
-    pub sim_status: bool,
+    pub sim_status: Moor,
     pub packet_debug: bool,
 }
 
@@ -27,7 +36,7 @@ impl Default for SimPcapState {
             current_file: None,
             packet_sended: 0,
             // status: None,
-            sim_status: false,
+            sim_status: Moor::INIT,
             packet_debug: false,
         }
     }
@@ -38,31 +47,31 @@ impl SimPcapState {
         &mut self,
         interface: String,
         files: Vec<String>,
-    ) -> Result<bool, Error> {
+    ) -> Result<Moor, Error> {
         log::info!("Start simulation");
         // Update the simulation status
-        self.sim_status = true;
+        self.sim_status = Moor::PLAYING;
 
         let true_interface = try_find_interface(interface)?;
         log::info!("flies: {:?}", files);
         sim(true_interface, files, self)?;
-        self.sim_status = false;
+        self.sim_status = Moor::COMPLETED;
         // Return the new status
         Ok(self.sim_status)
     }
 
-    pub fn stop_simulation(&mut self) -> Result<bool, Error> {
+    pub fn stop_simulation(&mut self) -> Result<Moor, Error> {
         log::info!("Stop simulation");
         // Update the simulation status
-        self.sim_status = false;
+        self.sim_status = Moor::STOPPED;
         // Return the new status
         Ok(self.sim_status)
     }
 
-    pub fn resume_simulation(&mut self) -> Result<bool, Error> {
+    pub fn resume_simulation(&mut self) -> Result<Moor, Error> {
         log::info!("Resume simulation");
         // Update the simulation status
-        self.sim_status = true;
+        self.sim_status = Moor::PLAYING;
         // Return the new status
         Ok(self.sim_status)
     }

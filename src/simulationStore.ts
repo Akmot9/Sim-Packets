@@ -1,10 +1,17 @@
 import { defineStore } from 'pinia';
 import { invoke } from "@tauri-apps/api/core";
 
+export type MoorState = 
+    'INIT' | 
+    'PLAYING' |
+    'RUNNING' | 
+    'PAUSED' | 
+    'STOPPED';
+
 interface SimulationState {
   current_file: string | null;  // Using `null` instead of `Option` for TypeScript
   packet_sended: number;
-  sim_status: boolean;
+  sim_status: MoorState;
   packet_debug: boolean;
 }
 
@@ -13,20 +20,34 @@ export const useSimulationStore = defineStore('simulation', {
   state: (): SimulationState => ({
     current_file: null,  // Initialize with null
     packet_sended: 0,
-    sim_status: false,
+    sim_status: 'INIT' as MoorState,
     packet_debug: false,
   }),
 
   // Actions to update the state
   actions: {
+    updateState(updatedState: SimulationState) {
+      this.sim_status = updatedState.sim_status;
+      this.packet_debug = updatedState.packet_debug;
+      console.info(`State successfully updated to ${updatedState.sim_status}. Debug: ${updatedState.packet_debug}`);
+      console.info(`State successfully updated to ${this.sim_status as MoorState}. Debug: ${this.packet_debug}`);
+      this.loadStateFromTauri(updatedState);
+      this.saveStateToTauri();
+    },
     updateCurrentFile(file: string | null) {
       this.current_file = file;
     },
     incrementPacketSended() {
       this.packet_sended += 1;
     },
-    setSimStatus(status: boolean) {
+    setSimStatus(status: MoorState) {
       this.sim_status = status;
+      this.updateState({
+        sim_status: status,
+        current_file: null,
+        packet_sended: 0,
+        packet_debug: false
+      });
     },
     togglePacketDebug() {
       this.packet_debug = !this.packet_debug;
@@ -53,9 +74,4 @@ export const useSimulationStore = defineStore('simulation', {
     }
   },
   // Optionally, use getters to derive some values from the state
-  getters: {
-    isSimulationRunning(state: SimulationState): boolean {
-      return state.sim_status;
-    },
-  },
 });

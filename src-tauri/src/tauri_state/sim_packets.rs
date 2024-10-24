@@ -1,4 +1,4 @@
-use crate::errors::{ Error, InterfaceError};
+use crate::{errors::{ Error, InterfaceError}, tauri_state::Moor};
 use pcap::Capture;
 use pnet::datalink::{self, Channel, DataLinkSender};
 
@@ -64,9 +64,9 @@ fn handle_pcap_file(file_path: String, tx: &mut Box<dyn DataLinkSender>, state: 
             log::info!("Packet debug is active, pausing the simulation...");
         
             // Met le statut de simulation à "faux" (pause)
-            state.sim_status = false;
+            state.sim_status = Moor::PAUSED;
             // Attendre que l'utilisateur change le statut pour reprendre
-            while !state.sim_status {
+            while state.sim_status != Moor::PLAYING {
                 // Boucle jusqu'à ce que `sim_status` soit remis à `true` pour reprendre
                 std::thread::sleep(std::time::Duration::from_millis(100)); // Petite attente pour éviter une boucle serrée
             }

@@ -3,37 +3,43 @@
     <button
       :class="[
         'btn',
-        isPlaying ? 'btn-warning' : 'btn-primary',
-        { 'btn-disabled': !hasFiles },
+        isPlaying ? 'btn-warning' : 'btn-primary'
       ]"
-      @click="$emit('togglePlayPause')"
-      :disabled="!hasFiles"
+      @click="togglePlayPause"
+      
     >
       {{ isPlaying ? "Pause" : "Play" }}
     </button>
-    <button class="btn btn-secondary" @click="$emit('close')">Close</button>
+    <button class="btn btn-secondary" @click="close">Close</button>
   </div>
 </template>
 
 <script lang="ts">
+import { defineComponent, computed } from 'vue';
 import { useSimulationStore } from '../simulationStore';
 import { exit } from "@tauri-apps/plugin-process";
 
-export default {
+export default defineComponent({
   setup() {
     const store = useSimulationStore();
-    return { store };
-  },
-  methods: {
-        /**
-     * Closes the application with the given exit code.
-     * @returns {Promise<void>} - A promise that resolves when the application has been closed.
-     */
-     async close(): Promise<void> {
+
+    const isPlaying = computed(() => store.sim_status === 'PLAYING');
+
+    const togglePlayPause = () => {
+      if (store.sim_status === 'PLAYING') {
+        store.setSimStatus('PAUSED');
+      } else {
+        store.setSimStatus('PLAYING');
+      }
+    };
+
+    const close = async () => {
       await exit(1);
-    },
-  }
-};
+    };
+
+    return { isPlaying, togglePlayPause, close };
+  },
+});
 </script>
 
 <style scoped>

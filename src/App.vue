@@ -148,7 +148,7 @@ export default defineComponent({
       }
     },
     play() {
-      this.store.setSimStatus(true) ;
+      this.store.setSimStatus('PLAYING'); ;
       this.status = "Simulation started...";
       invoke("start_packet_sending", {
         interface: this.selectedAdapter,
@@ -163,7 +163,7 @@ export default defineComponent({
     },
 
     pause() {
-      this.store.setSimStatus(true) ;
+      this.store.setSimStatus('PAUSED') ;
       this.status = "Simulation paused.";
       invoke("pause_packet_sending")
         .then((message: any) => this.updateSimulationState(message))

@@ -1,7 +1,7 @@
 <template>
   <div class="file-group">
     <label for="packetFiles">Packet File:</label>
-    <button class="btn" @click="$emit('addFiles')">Add File(s)</button>
+    <button class="btn" @click="('addFiles')">Add File(s)</button>
     <button class="btn btn-clear" @click="$emit('clearFiles')">Clear</button>
     <div class="packet-file-table" v-if="packetFiles.length">
       <table>
