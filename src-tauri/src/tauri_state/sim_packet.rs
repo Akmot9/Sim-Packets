@@ -5,10 +5,11 @@ use pnet::datalink::{self, Channel, DataLinkSender};
 use pcap::Capture;
 
 pub fn try_find_interface(interface_name: String) -> Result<datalink::NetworkInterface, Error> {
+    println!("try find interface : {}", interface_name) ;
     let interfaces = datalink::interfaces();
     let interface = interfaces
         .into_iter()
-        .find(|iface| iface.name == interface_name);
+        .find(|iface| iface.name == interface_name || iface.mac.unwrap().to_string() == interface_name);
 
     match interface {
         Some(iface) => Ok(iface),

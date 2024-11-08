@@ -32,12 +32,12 @@ pub fn get_interfaces(
             // Return the MAC address of the interface on Windows.
             #[cfg(target_os = "windows")]
             {
-                format!("Interface MAC: {}", iface.mac.unwrap_or_default())
+                iface.mac.unwrap_or_default().to_string()
             }
             // Return the MAC address of the interface for other systems.
             #[cfg(not(any(target_os = "linux", target_os = "windows")))]
             {
-                format!("Interface MAC: {}", iface.mac.unwrap_or_default())
+                iface.mac.unwrap_or_default().to_string()
             }
         })
         .collect();
