@@ -80,6 +80,6 @@ fn send_packet(tx: &mut Box<dyn DataLinkSender>, data: Vec<u8>) -> Result<(), Er
     tx.build_and_send(1, data.len(), &mut |packet| {
         packet.copy_from_slice(&data);
     }); 
-    thread::sleep(Duration::from_micros(1)); // 500 microsecondes
+    thread::sleep(Duration::from_micros(1)); // 
     Ok(())
 }
