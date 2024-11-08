@@ -1,25 +1,33 @@
 [package]
-name = "sim_packets"
-version = "0.0.0"
+name = "sim-packets"
+version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "sim_packets_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
 [build-dependencies]
-tauri-build = { version = "1", features = [] }
+tauri-build = { version = "2.0.0", features = [] }
 
 [dependencies]
-tauri = { version = "1", features = [ "process-exit", "dialog-all", "shell-open", "global-shortcut"] }
+tauri = { version = "2.0.0", features = [] }
+tauri-plugin-shell = "2.0.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-thiserror = "1"
+tauri-plugin-dialog = "2"
+tauri-plugin-process = "2"
+tauri-plugin-log = "2.0.1"
 
+thiserror = "1.0.64"
+log = "0.4.22"
+
+pcap = "2.2.0"
 pnet = "0.35.0"
-pcap = "2.0.0"
-
-
-[features]
-# This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
-custom-protocol = ["tauri/custom-protocol"]

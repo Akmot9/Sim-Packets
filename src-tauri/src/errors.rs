@@ -8,14 +8,18 @@ pub enum InterfaceError {
 impl fmt::Display for InterfaceError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            InterfaceError::NotFound(name) => write!(f, "Network interface '{}' not found", name),
+            InterfaceError::NotFound(name) => {
+                // Log the error message
+                log::error!("Network interface '{}' not found", name);
+                // Display the error message
+                write!(f, "Network interface '{}' not found", name)
+            }
         }
     }
 }
 
 impl std::error::Error for InterfaceError {}
 
-use std::sync::PoisonError;
 
 // Create a custom Error that we can return in Results
 #[derive(Debug, thiserror::Error)]
@@ -30,10 +34,8 @@ pub enum Error {
     #[error("interface error: {0}")]
     InterfaceError(#[from] InterfaceError),
 
-    // Custom error for issues with network channel creation
-    #[error("Failed to create datalink channel: {0}")]
+    #[error("Channel error: {0}")]
     ChannelError(String),
-
 }
 // Implement Serialize for the error
 impl serde::Serialize for Error {
@@ -44,9 +46,12 @@ impl serde::Serialize for Error {
         serializer.serialize_str(self.to_string().as_ref())
     }
 }
+
+use std::sync::PoisonError;
 // Implement From<PoisonError> for Error to convert it to something we have set up serialization for
 impl<T> From<PoisonError<T>> for Error {
     fn from(err: PoisonError<T>) -> Self {
+        log::error!("PoisonError: {}", err);
         // We "just" convert the error to a string here
         Error::PoisonError(err.to_string())
     }
