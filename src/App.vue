@@ -73,6 +73,7 @@
       <button class="btn btn-secondary" @click="close">Close</button>
     </div>
   </div>
+  <div>v1</div>
 </template>
 
 <script>
