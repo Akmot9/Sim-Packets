@@ -44,9 +44,8 @@
         <input type="checkbox" v-model="loopSending" id="loopSending" />
         <label for="loopSending">Loop Sending:</label>
         <input type="number" v-model="loopCount" :disabled="!loopSending" min="1" />
-        <label for="delayBetweenLoops">Delay Between Loops:</label>
-        <input type="number" v-model="delayBetweenLoops" min="0" />
-        <span>{{ delayBetweenLoops }} ms</span>
+        <label for="delayBetweenPackets">Delay Between packets:</label>
+        <input type="number" v-model="delayBetweenPackets" min="0" />
         <div>
           <input type="checkbox" v-model="ignoreFileError" id="ignoreFileError" />
           <label for="ignoreFileError">Ignore any file error</label>
@@ -91,7 +90,7 @@ export default {
       playSpeed: 1,
       loopSending: false,
       loopCount: 1,
-      delayBetweenLoops: 1000,
+      delayBetweenPackets: 1,
       ignoreFileError: true,
       currentFile: '',
       packetsSent: 0,
@@ -141,7 +140,8 @@ export default {
       // Logic to start packet sending
       invoke('start_packet_sending', { 
         interface: this.selectedAdapter,
-        files: this.packetFiles
+        files: this.packetFiles,
+        delay: this.delayBetweenPackets
       
       }).
       then((message) => this.updateSimulationState(message))

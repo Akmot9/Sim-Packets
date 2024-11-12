@@ -19,7 +19,11 @@ pub fn try_find_interface(interface_name: String) -> Result<datalink::NetworkInt
     }
 }
 
-pub fn sim(interface: datalink::NetworkInterface, file_paths: Vec<String>) -> Result<(), Error> {
+pub fn sim(
+    interface: datalink::NetworkInterface, 
+    file_paths: Vec<String>,
+    delay: u64
+) -> Result<(), Error> {
     // Configure the packet sender
     let (mut tx, _rx) = match datalink::channel(&interface, Default::default()) {
         Ok(Channel::Ethernet(tx, _rx)) => (tx, _rx),
@@ -31,7 +35,7 @@ pub fn sim(interface: datalink::NetworkInterface, file_paths: Vec<String>) -> Re
     let mut total_packets_sent = 0;
 
     for file_path in file_paths {
-        let (packets_read, packets_sent) = handle_pcap_file(file_path, &mut tx)?;
+        let (packets_read, packets_sent) = handle_pcap_file(file_path, &mut tx, delay)?;
         total_packets_read += packets_read;
         total_packets_sent += packets_sent;
     }
@@ -49,7 +53,11 @@ pub fn sim(interface: datalink::NetworkInterface, file_paths: Vec<String>) -> Re
     Ok(())
 }
 
-fn handle_pcap_file(file_path: String, tx: &mut Box<dyn DataLinkSender>) -> Result<(usize, usize), Error> {
+fn handle_pcap_file(
+    file_path: String, 
+    tx: &mut Box<dyn DataLinkSender>,
+    delay: u64
+) -> Result<(usize, usize), Error> {
     // Attempt to open the pcap file, propagating the error if it fails
     let mut cap = Capture::from_file(file_path).map_err(|_| Error::Io(std::io::Error::new(std::io::ErrorKind::Other, "Failed to open pcap file")))?;
 
@@ -60,7 +68,7 @@ fn handle_pcap_file(file_path: String, tx: &mut Box<dyn DataLinkSender>) -> Resu
     while let Ok(packet) = cap.next_packet() {
         packets_read += 1;
         print_packet_in_hex(&packet.data);
-        if send_packet(tx, packet.data.to_vec()).is_ok() {
+        if send_packet(tx, packet.data.to_vec(), delay).is_ok() {
             packets_sent += 1;
         }
     }
@@ -77,10 +85,10 @@ fn print_packet_in_hex(data: &[u8]) {
 }
 
 // Fonction pour envoyer un paquet sur l'interface réseau
-fn send_packet(tx: &mut Box<dyn DataLinkSender>, data: Vec<u8>) -> Result<(), Error> {
+fn send_packet(tx: &mut Box<dyn DataLinkSender>, data: Vec<u8>, delay: u64) -> Result<(), Error> {
     tx.build_and_send(1, data.len(), &mut |packet| {
         packet.copy_from_slice(&data);
     }); 
-    thread::sleep(Duration::from_micros(1)); // 
+    thread::sleep(Duration::from_micros(delay)); // 
     Ok(())
 }

@@ -33,13 +33,18 @@ impl Default for SimPcapState {
 }
 
 impl SimPcapState {
-    pub fn start_simulation(&mut self, interface: String, files: Vec<String>) -> Result<bool, Error> {
+    pub fn start_simulation(
+        &mut self, interface: String, 
+        files: Vec<String>,
+        delay: u64
+    ) -> Result<bool, Error> {
+
         // Update the simulation status
         self.sim_status = true;
 
         let true_interface = try_find_interface(interface)?;
         println!("flies: {:?}", files);
-        sim(true_interface, files)?;
+        sim(true_interface, files, delay)?;
         self.sim_status = false;
         // Return the new status
         Ok(self.sim_status)

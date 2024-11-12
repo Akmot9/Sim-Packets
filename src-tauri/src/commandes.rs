@@ -64,13 +64,14 @@ pub fn get_interfaces(
 pub fn start_packet_sending(
         state_mutex: State<'_, Arc<Mutex<SimPcapState>>>, 
         interface: String,
-        files: Vec<String>
+        files: Vec<String>,
+        delay: u64
     ) -> Result<SimPcapState, Error> {
 
-    println!("Interface: {interface}");
+    println!("Interface: {interface}, files: {:?}, delay: {delay}",files);
     let mut state = state_mutex
         .lock()?;
-    state.start_simulation(interface, files)?;
+    state.start_simulation(interface, files, delay)?;
     
     println!("state: {:?}", state);
     Ok(state.clone())
