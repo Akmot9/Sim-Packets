@@ -25,14 +25,14 @@ pub enum Error {
     Io(#[from] std::io::Error),
     // Add a PoisonError, but we implement it manually later
     #[error("the mutex was poisoned")]
-    PoisonError(String),
+    Poison(String),
 
     #[error("interface error: {0}")]
-    InterfaceError(#[from] InterfaceError),
+    Interface(#[from] InterfaceError),
 
     // Custom error for issues with network channel creation
     #[error("Failed to create datalink channel: {0}")]
-    ChannelError(String),
+    Channel(String),
 
 }
 // Implement Serialize for the error
@@ -48,6 +48,6 @@ impl serde::Serialize for Error {
 impl<T> From<PoisonError<T>> for Error {
     fn from(err: PoisonError<T>) -> Self {
         // We "just" convert the error to a string here
-        Error::PoisonError(err.to_string())
+        Error::Poison(err.to_string())
     }
 }

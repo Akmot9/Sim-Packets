@@ -1,8 +1,9 @@
+use crate::errors::Error;
+use crate::tauri_state::sim_packet::{sim, try_find_interface};
 use crate::tauri_state::SimPcapState;
 use pnet::datalink;
 use std::sync::{Arc, Mutex};
-use tauri::{command, State};
-use crate::errors::Error;
+use tauri::{command, Emitter, State};
 
 #[command(async)]
 pub fn get_interfaces(
@@ -15,7 +16,7 @@ pub fn get_interfaces(
     // Check if interfaces were successfully retrieved.
     if interfaces.is_empty() {
         // If no interfaces are found, return an appropriate error.
-        return Err(Error::InterfaceError(crate::errors::InterfaceError::NotFound(
+        return Err(Error::Interface(crate::errors::InterfaceError::NotFound(
             "No network interfaces found.".into(),
         )));
     }
@@ -46,13 +47,12 @@ pub fn get_interfaces(
     std::thread::spawn(move || -> Result<(), Error> {
         // Create an infinite loop
         loop {
-            // Synchronize the state once per second
-            std::thread::sleep(std::time::Duration::from_secs(1));
+            // Émet l'état ~5 fois par seconde pour une barre de progression fluide.
+            std::thread::sleep(std::time::Duration::from_millis(200));
             // Emit an event with the SystemState as its payload
-            window
-                // Like a good developer you don't use `.unwrap()` on a Result
-                .emit("system_state_update", state.lock()?.clone())
-                .unwrap();
+            if let Err(e) = window.emit("system_state_update", state.lock()?.clone()) {
+                eprintln!("failed to emit system_state_update: {e}");
+            }
         }
     });
 
@@ -62,27 +62,52 @@ pub fn get_interfaces(
 
 #[command(async)]
 pub fn start_packet_sending(
-        state_mutex: State<'_, Arc<Mutex<SimPcapState>>>, 
-        interface: String,
-        files: Vec<String>,
-        delay: u64
-    ) -> Result<SimPcapState, Error> {
+    state_mutex: State<'_, Arc<Mutex<SimPcapState>>>,
+    interface: String,
+    files: Vec<String>,
+    delay: u64,
+) -> Result<SimPcapState, Error> {
+    println!("Interface: {interface}, files: {files:?}, delay: {delay}");
 
-    println!("Interface: {interface}, files: {:?}, delay: {delay}",files);
-    let mut state = state_mutex
-        .lock()?;
-    state.start_simulation(interface, files, delay)?;
-    
-    println!("state: {:?}", state);
-    Ok(state.clone())
+    // Résout l'interface tout de suite pour que l'erreur remonte à l'appelant.
+    let true_interface = try_find_interface(interface)?;
+
+    let state = Arc::clone(&state_mutex);
+    {
+        let mut s = state.lock()?;
+        // Ignore un second démarrage si une simulation tourne déjà.
+        if s.sim_status {
+            return Ok(s.clone());
+        }
+        s.packet_sended = 0;
+        s.total_packets = 0;
+        s.sim_status = true;
+    }
+
+    // La simulation tourne dans un thread : la commande rend la main tout de
+    // suite et l'avancement est poussé via l'évènement `system_state_update`.
+    let thread_state = Arc::clone(&state);
+    std::thread::spawn(move || {
+        if let Err(e) = sim(true_interface, files, delay, &thread_state) {
+            eprintln!("simulation error: {e}");
+        }
+        if let Ok(mut s) = thread_state.lock() {
+            s.sim_status = false;
+        }
+    });
+
+    let snapshot = state.lock()?.clone();
+    Ok(snapshot)
 }
 
 #[command]
-pub fn pause_packet_sending(state_mutex: State<'_, Arc<Mutex<SimPcapState>>>) -> Result<SimPcapState, Error> {
+pub fn pause_packet_sending(
+    state_mutex: State<'_, Arc<Mutex<SimPcapState>>>,
+) -> Result<SimPcapState, Error> {
     println!("pause_packet_sending");
-    let mut state = state_mutex
-        .lock()?;
-    state.stop_simulation()?;
-    println!("state: {:?}", state);
+    // Passe `sim_status` à false : le thread de simulation le voit et s'arrête.
+    let mut state = state_mutex.lock()?;
+    state.sim_status = false;
+    println!("state: {state:?}");
     Ok(state.clone())
 }

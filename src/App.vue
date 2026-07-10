@@ -54,12 +54,12 @@
     </div>
 
     <div class="sending-info-section">
-      <p>Current File: <strong>{{ currentFile }}</strong></p>
-      <p>Packets Sent: <strong>{{ packetsSent }}</strong></p>
+      <p>Packets Sent: <strong>{{ packetsSent }} / {{ totalPackets }}</strong></p>
       <p>Status: <strong>{{ status }}</strong></p>
       <div class="progress-bar">
         <div class="progress-bar-inner" :style="{ width: progress + '%' }"></div>
       </div>
+      <p class="progress-label">{{ progress.toFixed(1) }}%</p>
     </div>
     <div class="control-buttons">
       <button
@@ -72,14 +72,14 @@
       <button class="btn btn-secondary" @click="close">Close</button>
     </div>
   </div>
-  <div>v1</div>
+  <div>v2</div>
 </template>
 
 <script>
-import { invoke } from '@tauri-apps/api/tauri';
-import { open, message } from '@tauri-apps/api/dialog';
-import { exit } from '@tauri-apps/api/process';
-import { listen } from '@tauri-apps/api/event'
+import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
+import { open, message } from '@tauri-apps/plugin-dialog';
+import { exit } from '@tauri-apps/plugin-process';
 
 export default {
   data() {
@@ -92,8 +92,8 @@ export default {
       loopCount: 1,
       delayBetweenPackets: 1,
       ignoreFileError: true,
-      currentFile: '',
       packetsSent: 0,
+      totalPackets: 0,
       status: 'Please select an adapter and a packet file, Click Play button to start.',
       progress: 0,
       isPlaying: false, // Track if currently playing or paused
@@ -136,6 +136,9 @@ export default {
 
     play() {
       this.isPlaying = true;
+      this.progress = 0;
+      this.packetsSent = 0;
+      this.totalPackets = 0;
       this.status = 'Simulation started...';
       // Logic to start packet sending
       invoke('start_packet_sending', { 
@@ -143,14 +146,14 @@ export default {
         files: this.packetFiles,
         delay: this.delayBetweenPackets
       
-      }).
-      then((message) => this.updateSimulationState(message))
+      })
+      .then((state) => this.updateSimulationState(state))
       .catch(error => {
         console.error('Failed to start packet sending:', error);
         this.status = 'Error starting packet sending';
-        message(error, 
-        { title: 'Failed to start packet sending:', 
-        type: 'warning'})
+        message(error,
+        { title: 'Failed to start packet sending:',
+        kind: 'warning'})
       })
     },
     pause() {
@@ -158,16 +161,26 @@ export default {
       this.status = 'Simulation paused.';
       // Logic to pause the packet sending process
       invoke('pause_packet_sending')
-      then((message) => this.updateSimulationState(message))
+      .then((state) => this.updateSimulationState(state))
       .catch(error => {
         console.error('Failed to pause packet sending:', error);
         this.status = ('Failed to pause packet sending:', error);
       });
     },
     updateSimulationState(message) {
-    this.packetsSent = message.packet_sended;
-    this.isPlaying = message.sim_status;
-    this.status = this.isPlaying ? 'Simulation running...' : 'Simulation paused.';
+      this.packetsSent = message.packet_sended;
+      this.totalPackets = message.total_packets;
+      this.isPlaying = message.sim_status;
+      this.progress = this.totalPackets > 0
+        ? Math.min(100, (this.packetsSent / this.totalPackets) * 100)
+        : 0;
+      if (this.isPlaying) {
+        this.status = `Simulation running... ${this.packetsSent}/${this.totalPackets}`;
+      } else if (this.totalPackets > 0 && this.packetsSent >= this.totalPackets) {
+        this.status = `Simulation finished. ${this.packetsSent} packets sent.`;
+      } else {
+        this.status = 'Simulation paused.';
+      }
     },
     async close() {
       await exit(1);
@@ -308,5 +321,12 @@ th {
   height: 100%;
   background-color: #4caf50;
   transition: width 0.2s;
+}
+
+.progress-label {
+  text-align: right;
+  margin: 4px 0 0;
+  font-weight: bold;
+  color: #333;
 }
 </style>

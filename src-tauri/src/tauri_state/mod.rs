@@ -1,59 +1,14 @@
 pub mod sim_packet;
-use crate::errors::Error;
 use serde::Serialize;
-use sim_packet::{sim, try_find_interface};
 
-
-#[derive(Debug, Serialize, Clone)]
+/// État partagé de la simulation, émis vers le frontend via l'évènement
+/// `system_state_update` pour piloter la barre de progression.
+#[derive(Debug, Serialize, Clone, Default)]
 pub struct SimPcapState {
-    // speed: u32,
-    // loop_state: bool,
-    // delay: u64,
-    // ignore_state: bool,
-    // current_file: Option<String>,
+    /// Nombre de paquets déjà envoyés depuis le début de la simulation.
     pub packet_sended: u32,
-    // status: Option<String>,
+    /// Nombre total de paquets à envoyer (somme sur tous les fichiers).
+    pub total_packets: u32,
+    /// `true` tant que la simulation est en cours.
     pub sim_status: bool,
-}
-
-// You might want to implement Default to initialize with default values
-impl Default for SimPcapState {
-    fn default() -> Self {
-        Self {
-            // speed: 1,
-            // loop_state: false,
-            // delay: 0,
-            // ignore_state: false,
-            // current_file: None,
-            packet_sended: 0,
-            // status: None,
-            sim_status: false,
-        }
-    }
-}
-
-impl SimPcapState {
-    pub fn start_simulation(
-        &mut self, interface: String, 
-        files: Vec<String>,
-        delay: u64
-    ) -> Result<bool, Error> {
-
-        // Update the simulation status
-        self.sim_status = true;
-
-        let true_interface = try_find_interface(interface)?;
-        println!("flies: {:?}", files);
-        sim(true_interface, files, delay)?;
-        self.sim_status = false;
-        // Return the new status
-        Ok(self.sim_status)
-    }
-
-    pub fn stop_simulation(&mut self) -> Result<bool, Error> {
-        // Update the simulation status
-        self.sim_status = false;
-        // Return the new status
-        Ok(self.sim_status)
-    }
 }
